@@ -6,7 +6,7 @@ tags:
 - Input
 ---
 
-Suppose we are using a fixed-time step to update the game and we're at the begin┬áof a new frame. Then, the keyboard input events that were fired are requested and handled via callbacks or similar, making a character to jump or shoot in an enemy. What is the problem with that?
+Suppose we are using a fixed-time step to update the game and we're at the begin of a new frame. Then, the keyboard input events that were fired are requested and handled via callbacks or similar, making a character to jump or shoot in an enemy. What is the problem with that?
 
 The problem is that inputs handled directly (e.g. callbacks) without some kind of pre-processing step approaches the game simulation into an event-based application. We all know that games aren't event based applications even though there are game events to be handled in a game. That's particularly important when we're using a fixed time step simulation.
 
@@ -195,9 +195,9 @@ void Time::UpdateBy(u64 dt)
 
 ### The Key Buffer
 
-If you're running Windows┬«, you probably┬áknow that the pre-processed input events are pooled automatically by the O.S. into the Win32 API message queue. It's mandatory to keep the event pooling in the same thread the window was created, but is not to keep the game running on another. In order to separate input processing from the game logic, we can let the message queue running on the main thread while the game simulation and rendering is on another. Here, for simplicity, we'll assume the rendering runs on the game-thread, so we won't need syncronization between game and rendering.
+If you're running Windows, you probably know that the pre-processed input events are pooled automatically by the O.S. into the Win32 API message queue. It's mandatory to keep the event pooling in the same thread the window was created, but is not to keep the game running on another. In order to separate input processing from the game logic, we can let the message queue running on the main thread while the game simulation and rendering is on another. Here, for simplicity, we'll assume the rendering runs on the game-thread, so we won't need syncronization between game and rendering.
 
-Below there is an window procedure just to let us remember how does looks like processing keyboard events on Win32.
+Below there is an window procedure just to let us remember how does look like processing keyboard events using the Win32 API.
 
 {% highlight cpp %}
 

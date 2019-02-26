@@ -24,6 +24,7 @@ Another way to compute the velocity constraint vector is to build the gradients 
 ![C(x(t)))](https://latex.codecogs.com/gif.latex?C%28x%28t%29%29%29) then by the chain rule we have:
 
 ![frac{ partial C } { partial t } = frac{ partial C } { partial x } frac{ partial x } { partial t } = Jv](https://latex.codecogs.com/gif.latex?%5Cfrac%7B%20%5Cpartial%20C%20%7D%20%7B%20%5Cpartial%20t%20%7D%20%3D%20%5Cfrac%7B%20%5Cpartial%20C%20%7D%20%7B%20%5Cpartial%20x%20%7D%20%5Cfrac%7B%20%5Cpartial%20x%20%7D%20%7B%20%5Cpartial%20t%20%7D%20%3D%20Jv)
+
 Talking about the Jacobian, we can differentiate the velocity constraint to get the acceleration constraint. For that we can use a product rule-chain rule combo. By the product rule,
 
 

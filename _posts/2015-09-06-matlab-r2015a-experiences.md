@@ -18,7 +18,7 @@ To define this function in MATLAB ("MAT" comes from MATrix not "MATH"!) such
 
 ![](https://latex.codecogs.com/gif.latex?-10&space;\leq&space;x&space;\leq&space;10,&space;y&space;=&space;x^T) we type 
 
-[x, y] = meshgrid(-10.0: 1.0: 10.0) to get our working domain. The first argument is the minimum value for x, the third is the step size and the last is the maximum value. If we┬áommit the middle parameter then the step size becomes 1 by default. For the ones confused about this script output: this grid is a collection of 2D vector pairs. After this script is executed the 20x20 matrix y will be equal the transpose of 20x20 matrix x.
+[x, y] = meshgrid(-10.0: 1.0: 10.0) to get our working domain. The first argument is the minimum value for x, the third is the step size and the last is the maximum value. If we ommit the middle parameter then the step size becomes 1 by default. For the ones confused about this script output: this grid is a collection of 2D vector pairs. After this script is executed the 20x20 matrix y will be equal the transpose of 20x20 matrix x.
 
 The version of MATLAB which I'm using doesn't allow us to define a function. However we can bypass this by evaluating our function at x and y using 
 z = x.^2 + y.^2. Then we can plot (x, y, z) by typing mesh(x, y, z). We now have a nice graph:
