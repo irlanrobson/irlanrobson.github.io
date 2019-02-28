@@ -17,3 +17,4 @@ The source code for my version is [here](https://github.com/irlanrobson/bounce).
 I encourage one to rewrite an existing algorithm putting some of its personal design decisions into it in order to make it more fast, reliable, and user friendly. The results are most of the time rewarding.
 
 This post was somewhat a delayed announcement in form of a blog post.
+
