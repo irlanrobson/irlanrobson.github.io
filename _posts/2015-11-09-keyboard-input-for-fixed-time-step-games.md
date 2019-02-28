@@ -6,11 +6,11 @@ tags:
 - Input
 ---
 
-Suppose we are using a fixed-time step to update the game and we're at the begin of a new frame. Then, the keyboard input events that were fired are requested and handled via callbacks or similar, making a character to jump or shoot in an enemy. What is the problem with that?
+Suppose we are using a fixed-time step to update the game and we're at the begin of a new frame. Each frame keyboard input events are fired and handled immediately (e.g. callbacks), making a character to jump or shoot in an enemy. What is the problem with this?
 
-The problem is that inputs handled directly (e.g. callbacks) without some kind of pre-processing step approaches the game simulation into an event-based application. We all know that games aren't event based applications even though there are game events to be handled in a game. That's particularly important when we're using a fixed time step simulation.
+The problem is that inputs handled directly without some kind of pre-processing approaches the game into an event-based application. Games are not event based applications even though there are game events to be handled in a game. Input pre-processing is important when we're using a fixed time step simulation.
 
-In this post I'll show you one approach that handles keyboard input on Windows assuming that the game is been updated using a fixed-time step. However, the concept extends to basically any other input device. In order to not go futher into the subject (i.e. describing high-level game input logging/mapping/contexts) I'll only describe a solution for the previous problem and after that provide an Windows implementation which uses the concept of buffered inputs and multithreading.
+In this post I'll show you one approach that handles keyboard inputs on Windows assuming that a fixed-time step is being used to updated the game (timer). We will be using the keyboard here as our input device but the concept can be extended to any input device. In order to not go futher into the subject (for example, describing more complex input systems) I'll only describe a solution for the previous problem and after this I'll provide a Windows implementation of a keyboard input system which uses the concept of buffered inputs and multithreading.
 
 ## Acknowledgment
 
@@ -21,8 +21,8 @@ Thanks to
 
 ## Introduction
 
-Updating the game simulation each frame by the elapsed frame time since the last frame update (that is, a variable time step), means that the game behaviour varies with time. That's the main reason why currently game programmers tend to update their games each frame by fixed time intervals. It is well know that this is efficiently achieved by the famouse fixed-time step. However, its implementation details are off-topic. I'm assuming that the reader have implemented fixed-time step games or understands how they work. If not, I suggest him to read 
-[this post](http://www.gamedev.net/page/index.html) which explains various methods of stepping a simulation and ultimately chooses the fixed-time-step approach used here as the best for good reasons. Thus, a single fixed-time step update eventually goes by the name game logical update.
+Updating the game simulation each frame by the elapsed frame time since the last frame update, that is, a variable time step, means that the simulation is indeterministic. That's the main reason why currently game programmers tend to update their games each frame by fixed time intervals. It is well known that determinism can be efficiently achieved by the famous fixed-time step. Therefore, I'm assuming that the reader has implemented fixed-time step games or understands how they work. If not, I suggest him to read 
+[this post](https://gafferongames.com/post/integration_basics/) which explains various methods of stepping a simulation and ultimately chooses the fixed-time-step approach used here as the best for good reasons. Thus, a single fixed-time step update eventually goes by the name game logical update.
 
 A single game logical update updates the current game logical time by a fixed time interval which is usually 16.6 ms (60 Hz) or 33.3 ms (30 Hz), and it updates our game by 
 n times each frame depending of the current real frame time. The game loop of a fixed-time step game is written below to freshen our minds.
@@ -52,7 +52,7 @@ void Game::Run()
 
 In the previous pseudo-code, m_renderTime.Update() updates the application time by the real elapsed time since the last call, and m_logicTime.UpdateBy(s_dt) updates the game logic time by s_dt microseconds.
 
-If one presses a button in the beginning of the current frame, set this button state as pressed, and suddenly release the button during a game logical update, then the button will be seen by the next updates (if there are) as if it got pressed during the entire frame. This is not a problem when the elapsed frame time is small because it'll jump to the next frame quickly, but if the current frame time is considerably larger than the time step, then that can turn in something undesirable to some players. A better approach that pottentially solves our problem is to pool input events right before a game logic update, as written bellow.
+If one presses a button in the beginning of the current frame, set this button state as pressed, and suddenly releases the button during a game logical update, then the button will be seen by the next updates (if there are) as if it got pressed during the entire frame. This is not a problem when the elapsed frame time is small because it'll jump to the next frame quickly, but if the current frame time is considerably larger than the time step, then that can turn into something undesirable to some players. A better approach that pottentially solves our problem is to pool input events right before a game logic update, as written bellow.
 
 {% highlight cpp %}
 
@@ -72,8 +72,8 @@ void Game::Run()
 
 However, if we're concerned with input timing for game logic, then we need a way of retrieving those inputs precisely, which means time-stamping a button when it gets pressed or released, so its duration can be correctly measured later, and more importantly, we can synchronize it with the game simulation. 
 
-We can attempt the increase input latency by handling keyboard inputs in a separate thread and processing them before a game logic update (the UpdateGameState function previously), much similar to the consumer and producer model, in this case the producer being the window and the consumer the game. But how am I going to get the correct set of inputs once these things are available? Well, since the game logic time depends on the current real time, we must 
-**consume on each game logical update only the input events that occurred up to the current game logic time** in order to keep inputs synchronized with the game simulation. The following example scenario will illustrate this idea.
+We can attempt to increase input latency by handling keyboard input events in a separate thread and processing them before a game logic update (the UpdateGameState function previously). That's much similar to the consumer and producer model. In this case the producer would be the window and the consumer would be the game. But how am I going to get the correct set of inputs once these things are available? Well, since the game logic time depends on the current real time, we must 
+**consume on each game logical update only the input events that occurred up to the current game logic time in order to keep inputs synchronized with the game simulation**. The following example scenario will make this idea more clear.
 
 ### Frame Update
 
@@ -95,11 +95,11 @@ We can attempt the increase input latency by handling keyboard inputs in a separ
 
 Now a couple of comments on the data we've seen in the table.
 
-1st update. Eats 100 ms of input: There are no inputs up to there to be consumed, then go to the next logical update.
+1st update. Eats 100 ms of input: There are no inputs up to there to be consumed. Go to the next logical update.
 
 1-7th update. There are no inputs up to the current logical game time (600 ms). Therefore go to the next logical update.
 
-8th update. The game time is: 800 ms. Then the time-stamped X-down event must be consumed. The current duration of the X button is the current game time subtracted by the time stamp, that is, 800 ms - 700 ms = 100 ms. Now, the game can check if a button is being held for a certain amount of time, which is an usable information. Momentarily, we know that a mechanism could be fired here because is the first time the user presses the X button (in the example, of course, because there was no X-down before). Another thing we could do on this example would be mapping the X button to a game-engine understandable input key, logging it into the input system, and then remapping it into the game.
+8th update. The current game time is 800 ms. Then the time-stamped X-down event must be consumed. The current duration of the X button is the current game time subtracted by the time stamp, that is, 800 ms - 700 ms = 100 ms. Now, the game can check if a button is being held for a certain amount of time, which is an usable information. We know that a mechanism could be fired here because is the first time the user presses the X button (in the example, of course, because there was no X-down before). Another thing we could do on this example would be mapping the X button to a game-engine understandable input key, logging it into the input system, and then remapping it into the game.
 
 9th update. Game time = 900 ms. X-up, and Y-down along with its time-stamps can be consumed. The X button was released, then its total duration since it was pressed is the current game time subtracted by its first tap time-stamp, that is, 900 ms - 700 ms = 300 ms. You may want to log this change somewhere in the game-side. Y was pressed, then we repeat for it the same thing we did to X in the last update.
 
@@ -111,7 +111,7 @@ And of course, since the input gathering runs asynchronously (separated from inp
 
 ### The Time Class
 
-At this point you should already know how the computer time works and how to create an appropriate timer class. The timer class stores microseconds as the standard time units in order to avoid numerical drifts. Small intervals can be converted to seconds or miliseconds and stored in doubles or floats but they're not accumulated in our timer class.
+I'm assuming you know how the computer time works and how to create an appropriate timer class. The timer class stores **microseconds** as the standard time units in order to avoid numerical drifts. Small intervals can be converted to seconds or miliseconds and stored in doubles or floats but they're not accumulated in our timer class. Here's a decent timer class:
 
 {% highlight cpp %}
 
@@ -149,6 +149,8 @@ private :
 };
 
 {% endhighlight %}
+
+And here's the implementation:
 
 {% highlight cpp %}
 
@@ -197,7 +199,7 @@ void Time::UpdateBy(u64 dt)
 
 If you're running Windows, you probably know that the pre-processed input events are pooled automatically by the O.S. into the Win32 API message queue. It's mandatory to keep the event pooling in the same thread the window was created, but is not to keep the game running on another. In order to separate input processing from the game logic, we can let the message queue running on the main thread while the game simulation and rendering is on another. Here, for simplicity, we'll assume the rendering runs on the game-thread, so we won't need syncronization between game and rendering.
 
-Below there is an window procedure just to let us remember how does look like processing keyboard events using the Win32 API.
+Below there is a window procedure just to let us remember how does look like processing keyboard events using the Win32 API.
 
 {% highlight cpp %}
 
@@ -364,7 +366,7 @@ void Win32Window::PoolEvents()
 
 ### The Keyboard
 
-The responsibility of the keyboard buffer is to buffer keyboard presses and releases at low-level so it should be possible to read them in the game-thread. In the game-thread before a game tick we will only consume the input events up to the current game logical time and then generate another set of input events that will be consumed in a linear fashion. That is needed since events that can't be consumed in the current tick need to be kept in this temporary buffer so it can be consumed later in a next update. (Ideally, this temporary buffer should use n stack allocator as it only contains temporary and POD data.)
+The responsibility of the keyboard buffer is to buffer keyboard presses and releases at a lower-level so it should be possible to read them in the game-thread. In the game-thread, before a game tick, we will only consume the input events up to the current game logical time and then generate another set of input events that will be consumed in a linear fashion. That is needed since events that can't be consumed in the current tick need to be kept in this temporary buffer so it can be consumed later in a next update. (Ideally, this temporary buffer should use n stack allocator as it only contains temporary and POD data.)
 
 {% highlight cpp %}
 
