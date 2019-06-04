@@ -10,8 +10,8 @@ for the soft body as a feature for [Bounce](https://github.com/irlanrobson/Bounc
 The soft body simulation uses the corotational linear finite-element method explained in [1]. For moving forward with the soft body dynamics we use a first order backward implicit Euler integrator followed by a simplified constraint solver that can robustly handle 
 vertex contacts. This ensures unconditional stability. The solver can perform fairly well for small time steps and good tetrahedrons.
 
-The simulator supports element-based elastic and plastic behaviour. This is pretty usefull for environment deformation. It also supports kinematically driven nodes which can be useful for simulating deformable sliding doors and elevators. Static and kinematic nodes is possibly by using the constraint satisfaction technique described in [3]. The solver works by establishing target velocities in the beginning 
-of a Conjugate Gradient (CG) solver and maintaining the velocities using a filtering procedure to cancel any delta velocity that gets added to the solution vector during the CG. 
+The simulator supports element-based elastic and plastic behaviour. This is pretty usefull for environment deformation. It also supports kinematically driven nodes which can be useful for simulating deformable sliding doors and elevators. Static and kinematic nodes is possibly by using the constraint satisfaction technique described in [3]. The solver works by establishing target velocities at the beginning 
+of a Conjugate Gradient (CG) solver and maintaining the velocities using a filtering procedure to cancel any delta velocity that would get added to the target velocity during the CG. 
 
 For simplicity an user can set body material parameters through the body definition in my implementation. However, with some modifications one can easely set per element parameters. 
 This can be useful if you are simulating melting behaviour, for example, where only some element material properties changes according to thermal laws. The elastic material 
