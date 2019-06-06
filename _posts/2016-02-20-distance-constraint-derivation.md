@@ -11,7 +11,7 @@ Sometimes it's desired to have a distance constraint. That constraint assumes a 
 ### Appendix
 
 The boring part is that it is possible to have a non-defined gradient when this constraint is satisfied. However, the problem is solved by skipping the constraint solving when that happens. Another workaround I can recommend is to define 3 distance constraints and solve them as a 3-by-3 linear system. This is sometimes called a 
-block solver. You can find one [here](https://github.com/irlanrobson/bounce_lite/blob/master/Src/Dynamics/Joints/b3SphericalJoint.cpp). Separating the points is done by chosing a point outside the volume of the shape of one of the bodies. Here, fortunately, there are neither square roots nor divide-by-zero checks which generally yields in greater performance.
+block solver. You can find one [here](https://github.com/irlanrobson/bounce_lite/blob/master/src/bounce_lite/dynamics/joints/sphere_joint.cpp). Separating the points is done by chosing a point outside the volume of the shape of one of the bodies. Here, fortunately, there are neither square roots nor divide-by-zero checks which generally yields in greater performance.
 
 Note that an inertia tensor 
 ![I](https://latex.codecogs.com/gif.latex?I) is a symmetric 3-by-3 matrix. So do its inverse. Therefore, 
