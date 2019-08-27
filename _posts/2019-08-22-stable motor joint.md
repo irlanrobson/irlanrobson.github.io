@@ -47,7 +47,9 @@ qW = inv_h * 2.0f * (q2 - q1) * conjugate(q1)
 
 where inv_h is the inverse time step. 
 
-The vector part of qW is the angular velocity will rotate q1 to q2 over the time step h. Substitute the angular velocity in Cdot.
+The vector part of qW is the angular velocity will rotate q1 to q2 over the time step h. 
+Substitute the angular velocity in Cdot.
+Note: The angular velocity is in body A's frame. So we need to convert it to world space.
 
 In code that could be written as:
 
@@ -68,8 +70,12 @@ m_angularVelocity.x = qw.x;
 m_angularVelocity.y = qw.y;
 m_angularVelocity.z = qw.z;
 
+// Convert the relative angular velocity to world space
+m_angularVelocity = b3Rotate(qA, m_angularVelocity);
+
 m_angularVelocity *= m_correctionFactor;
 
+// The corresponding effective mass is just the sum of the world space inverse inertia tensors
 m_angularMass = m_iA + m_iB;
 
 {% endhighlight %}
