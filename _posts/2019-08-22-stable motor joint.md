@@ -49,6 +49,7 @@ where inv_h is the inverse time step.
 
 The vector part of qW is the angular velocity will rotate q1 to q2 over the time step h. 
 Substitute the angular velocity in Cdot.
+
 Note: The angular velocity is in body A's frame. So we need to convert it to world space.
 
 In code that could be written as:
