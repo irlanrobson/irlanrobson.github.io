@@ -10,13 +10,12 @@ tags: []
 
 I recently needed a function for computing the time of impact (TOI) between two moving AABBs (Axis Aligned Bounding Box). 
 
-So I quickly looked at Real Time Collision Detection by Christer Ericson expecting a full implementation of this algorithm or 
-at least some direction into solving this problem.
+So quickly I scanned through [1] expecting a full implementation of this algorithm or at least some direction into solving this problem.
 
 I found a good direction, not the implementation. This is why I am writing this short blog post today. 
 
-Ah, and of course, I found other implementation in the game development forums. However, they are incomplete and their explanation was not clear. This showed lack of understanding of 
-the authors.
+Of course, I found other implementation in the game development forums. However, they are incomplete and their explanation was not clear. This showed lack of understanding of 
+the authors. Therefore, I decided to dissect the algorithm in [1] and write up my own version.
 
 Here is my version of the algorithm:
 
@@ -157,15 +156,15 @@ Let us call those bounding boxes A and B.
 The first step in the algorithm is to check if the AABBs are overlapping. If they aren't the TOI can be 
 determined. Otherwise we can quit the algorithm and return false because the TOI can't be determined.
 
-If the two AABBs have displacements dA and dB of their center of masses then we can reduce the problem to finding the TOI 
-between the dynamic AABB B and the static AABB A by putting dB relative to dA.
+If the two AABBs have displacements dA and dB of their center of masses then we can reduce this problem to the problem of finding the TOI 
+between a dynamic AABB B and a static AABB A by putting dB relative to dA.
 
-Fortunatelly, for two AABBs, the TOI on a cardinal axis can be computed using simple interval algebra. 
+Fortunately, for two AABBs, the TOI along a cardinal axis can be computed using simple interval algebra. 
 
-Here, we call t1 is the TOI at which B begins overlapping A. We name t2 the TOI at which B ends overlapping A.
+Here, we call t1 the TOI at which B begins overlapping A. We name t2 the TOI at which B ends overlapping A.
 
 Then for each axis we need to test against some conditions. 
-The fist case we test is when there is no displacement the axis. In this case we need to check if the AABBs are overlapping in the axis. 
+The first case we test is when there is no displacement in the axis. In this case we need to check if the AABBs are overlapping in the axis. 
 If they are, we must continue our search. Here is how this could look like in a touching configuration. 
 The line at the center represents the displacement vector.
 
@@ -179,35 +178,35 @@ Otherwise the AABBs are clearly separated. Below is one configuration in which t
 ![Mesh file format on a text editor](/assets/separating_2.png) 
 {: refdef}
 
-If t1 or t2 can be computed, the formulas for the (positive) TOIs on the i-th axis depends on the sign of d 
+If t1 or t2 can be computed, the formulas for the (positive) TOIs along an axis depend on the sign of d 
 along that axis and the positions of the intervals. So there are a few if checks to ensure the resulting TOI is positive. 
 Otherwise, if we can't compute the TOIs for that axis they will be set to the minimum or maximum possible TOI, that is, 0 or 1.
 
-If we can't compute t2 for one axis, then we check if the interval is moving away from each other. If they are the AABBs are clearly 
-separated on that axis and it can quit.
+If we can't compute t2 for an axis, we check if the interval B is moving away from interval A. If it is the AABBs are clearly 
+separated on that axis and we can quit the algorithm.
 
-If we can compute t1 for one axis, then we can check if it exceeds the maximum TOI: 1. If it does, then the AABB is separated along the direction and 
+If we can compute t1 for an axis, then we can check if it exceeds the maximum possible TOI: 1. If it does, then the AABB B is separated along the direction and 
 we can quit the algorithm returning false.
 
 {:refdef: style="text-align: center;"}
 ![Mesh file format on a text editor](/assets/separating_3.png) 
 {: refdef}
 
-Now that we have computed t1 and t2, we need to find the TOI at the largest distance B can travel before overlapping. This is the output TOI if 
-the AABBs will touch. This means taking the maximum of all t1 values.
+Now that we have computed t1 and t2 for each axis, we need to find the TOI at the *largest distance B can travel before overlapping*. 
+This is the output TOI if the AABBs will touch during the motion. This means taking the maximum of all t1 values.
 
 We also need to find the minimum TOI at which B ends overlapping A, choosing the minimum of all t2 values.
 
-With t1 and t2, we can test wether the AABBs will overlap during their motion. For this, we check if the maximum TOI at which B begins 
-overlapping A is greater than the minimum TOI at which B ceases overlapping A. If it is, the AABBs are separated. 
-
-The following picture ilustrates this idea. As before, it uses lines for representing maximum t1 and minimum t2. 
+With t1 and t2, we can test whether the AABBs will overlap during the motion. 
+For this, we check if the maximum TOI at which B begins overlapping A is greater than the minimum TOI at which B ceases overlapping A. 
+If it is, the AABBs are separated. 
+The following picture illustrates this idea. As before, it uses lines for representing maximum t1 and minimum t2. 
 
 {:refdef: style="text-align: center;"}
 ![Mesh file format on a text editor](/assets/separating_1.png) 
 {: refdef}
 
-Otherwise the AABBs touch during the motion and we can return true and the TOI. This can be seen in the picture below:
+Otherwise the AABBs will touch during the motion and we can return true and the TOI. This can be seen in the picture below:
 
 {:refdef: style="text-align: center;"}
 ![Mesh file format on a text editor](/assets/touching_2.png) 
@@ -218,3 +217,7 @@ That's it. I hope this short post helps if you're writing this function (:.
 **Note**: Christer's code can be faster as it tracks the maximum and minimum TOI but it doesn't handle cases where the displacement is zero. 
 
 But whatever... Just like any code in that book, it must first be understood and then fixed and used.
+
+## References
+
+[1] Christer Ericson. *Real Time Collision Detection*
