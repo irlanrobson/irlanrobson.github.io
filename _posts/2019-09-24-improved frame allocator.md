@@ -13,9 +13,11 @@ However, in typical implementation, the allocation function never fallbacks to a
 This can happen often because it is not possible to free memory with this allocator. This is one practical rule of thumb of allocators. 
 If you can't allocate memory using one allocator then fallback to another allocator!
 
-Therefore, a simple solution is to not allocate just memory but also allocate more information, or as we call here, a memory block. 
-The memory block should contain a flag indicating the memory came out from a parent allocator or from the frame allocator. 
+Therefore, a simple solution is to not allocate just memory but also allocate more information, or as we call here, a block header. 
+The header should contain a flag indicating the memory came out from a parent allocator or from the frame allocator. 
 Here's an example of how one could declare this kind of improved frame allocator. 
+
+Note: You can also use a footer but this requires passing the size of the memory block to the deallocate function.
 
 (I hope the types are self-documented, and please ignore the charming namespace prefixes, I prefer them over namespaces for clarity)
 
@@ -37,7 +39,7 @@ public:
 	void* Allocate(u32 size);
 	
 	// Free the memory if it was allocated by malloc.
-	void Free(void* p, u32 size);
+	void Free(void* q);
 
 	// Resets this allocator. This function must be called at the beginning of a frame.
 	void Reset();
@@ -56,12 +58,7 @@ private:
 
 {% endhighlight %}
 
-Notice the user must supply the allocated memory size in bytes to the allocation and free functions. 
-This is because in our implementation we ensure this block structure is followed by the allocated memory.
-So we need the offset. This allows fast checking.
-Of course here you could use some kind of pointer math or whatever, but there seems to be platform dependency 
-here when playing with pointers so I even tried that. The extension I purpose below is much clear and reliable than 
-the other versions.
+In our implementation of course we need to ensure the allocated memory is followed by the header structure.
 
 Here's the implementation: 
 
@@ -79,35 +76,35 @@ b3FrameAllocator::~b3FrameAllocator()
 
 void* b3FrameAllocator::Allocate(u32 size)
 {
-	u32 totalSize = size + sizeof(Block);
+	u32 totalSize = sizeof(Block) + size;
 
 	if (m_allocatedSize + totalSize > b3_maxFrameSize)
 	{
 		u8* p = (u8*)malloc(totalSize);
 		
-		Block* block = (Block*)(p + size);
+		Block* block = (Block*)(p);
 		block->p = p;
 		block->size = size;
 		block->parent = true;
-		return p;
+		return p + sizeof(Block);
 	}
 
 	u8* p = m_p;
 	m_p += totalSize;
 	m_allocatedSize += totalSize;
 	
-	Block* block = (Block*)(p + size);
+	Block* block = (Block*)p;
 	block->p = p;
 	block->size = size;
 	block->parent = false;
-	return p;
+	return p + sizeof(Block);
 }
 
-void b3FrameAllocator::Free(void* p, u32 size)
+void b3FrameAllocator::Free(void* q)
 {
-	Block* block = (b3Block*)((u8*)p + size);
+	u8* p = (u8*)(q) - sizeof(Block);
+	Block* block = (Block*)p;
 	B3_ASSERT(block->p == p);
-	B3_ASSERT(block->size == size);
 	if (block->parent)
 	{
 		free(p);
