@@ -21,7 +21,7 @@ In a particle system the triangles aren't necessary. They are used solely for re
 ray-casting.
 
 To make the algorithm simple to understand, I assume that you do not maintain a mesh adjacency structure for speeding up the process. 
-However, the algorithm showed here can be extended for maintaning such adjacencies. 
+However, the algorithm showed here can be extended for maintaning such a mesh. 
 
 # Splitting Vertex
 
@@ -37,7 +37,7 @@ with the desired edges and triangles.
 
 *I hope you enjoy my coder art. It was done entirely by myself.*
 
-The vertex splitting is the simplest technique for tearing a cloth. There are more advanced techniques that involves surface subdivision. 
+The vertex splitting technique is the simplest technique for tearing a cloth. There are more advanced techniques that involve surface subdivision. 
 I have tried edge splitting, but I can't recommend this technique because it can introduce triangles to the cloth that do not contribute to the quality of the simulation.
 
 # Splitting Plane
@@ -58,7 +58,7 @@ For example, if the length of an edge or the tension force exceeds a threshold v
 
 We need to determine the set of edges and triangles that will be attached to the new vertex originated from the splitting vertex.
 
-As you can see in the last picture, the splitting plane can be used to separated the triangles in two partition sets. One set containing the triangles 
+As you can see in the last picture, the splitting plane can be used to separate the triangles in two sets. One set containing the triangles 
 that are above the plane and the other containing the triangles that are below the plane. 
 
 In practice those partitions can be created by classifying the center of each triangle that contains the splitting vertex against the splitting plane. 
@@ -72,11 +72,10 @@ In practice those partitions can be created by classifying the center of each tr
 The first case we need to handle is the case where one of those triangle sets are empty. In this case our vertex splitting routine does nothing. There are no vertices 
 to split. Otherwise there is at least one triangle on each side of the plane and we must create a new vertex and start the feature attaching process explained below.
 
-In this algorithm our convention is to attach the edges and triangles that are below the plane to the new vertex. After we have 
+In this algorithm our convention is to attach the edges and triangles that are below the plane to the new vertex. Therefore, after we have 
 created the new vertex, we need to process each triangle that is below the separating plane.
 
-Therefore, for each triangle that is below the plane we must replace the original splitting vertex with the newly created vertex as showed in the 
-picture below. 
+For each triangle that is below the plane we must replace the original splitting vertex with the newly created vertex as showed in the picture below. 
 
 {:refdef: style="text-align: center;"}
 ![Feature Detaching](/assets/detaching.png) 
@@ -159,7 +158,7 @@ bool Tear()
 
 {% endhighlight %}
 
-So that the above function Tear() it can be called like so:
+So that the above function Tear() can be called like so:
 
 {% highlight cpp %}
 
@@ -169,8 +168,8 @@ while (Tear() == true);
 
 That is, it tries to split a particle until there is no particle to be split.
 
-Let us explain the main portions of code above. It loops over each spring in the cloth and then checks if the tension force has reached a tolerance.
-If this is true then it tries to split each particle along the tension axis. If a particle is not a dynamic particle then it skips that particle. (Decently 
+Let us explain the main portions of code above. It loops over each spring in the cloth and then it checks if the tension force has reached a tolerance.
+If this is true then it tries to separate one of the particles by the tension plane. If a particle is not a dynamic particle then it skips that particle. (Decently 
 designed cloth simulators have the concept of static, kinematic, and dynamic particles. Splitting kinematic and static particles can create visually 
 unpleasing results.) Then it repeats this process until there is no particle to be split.
 
