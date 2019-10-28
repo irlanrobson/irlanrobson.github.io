@@ -51,8 +51,8 @@ Now the first question we would like to answer is: How do I create the original 
 Any given element in the block matrix can be converted into the corresponding element in the original matrix by using the equations
 
 $$ 
-i_0 = 3 * i \\
-j_0 = 3 * j
+i_0 = 3 i \\
+j_0 = 3 j
 $$
 
 So we can see that creating the original matrix shouldn't be difficult task. That is a matter of looping over the submatrices and put those in the original matrix. 
@@ -132,18 +132,18 @@ In the current problem we're trying to solve the values $r$ and $c$ are known. T
 The subindices $i$ and $j$ are also known,
 
 $$
-i = \frac 3r \\
-j = \frac 3c 
+i = \frac r 3 \\
+j = \frac c 3 
 $$
 
-We are seeking for the values ii and jj. Hence, solving for them, yields 
+We are seeking for the values $I$ and $J$. Hence, solving for them, yields 
 
 $$
 I = r - 3 i \\
 J = c - 3 j 
 $$
 
-**Note**: Since we're performing integer math $ 3 (\frac r 3) != r $ because of rounding. The same holds for $c$.
+**Note**: Since we're performing index math $ 3 (\frac r 3) != r $ because of rounding. The same holds for $c$.
 
 Now a function that returns the element from a block matrix given the original element location can be written.
 

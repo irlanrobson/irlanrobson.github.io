@@ -11,17 +11,24 @@ Let's say we need to compute the intersection point and normal from a line segme
 
 ### Derivation
 
-The plane equation for a slab is simpler than the plane's in that the signed distance $d_i$ from any point to the slab plane in a certain direction is just the point coordinate in that direction $p_i$ minus the slab plane offset from the origin in that direction $w_i$.
+Recall this is the plane equation:
 
-$$ w_i = {n_i} \cdot {p_i} \\ 
-w_i = s p_i \\
-i = 1..6 $$
+$$ w = {n} \cdot {p} $$
 
-Here the sign variable $s$ is either $-1$ or $1$. Either the positive slab direction or the negative. If we store the lower and upper bounds of the AABB then we can get the intersection fraction from a slab plane to a point without creating the six planes of an AABB.
+where $w$ is the plane offset, $n$ the plane normal, and $p$ any point on the plane.
 
-Therefore, the signed distance in the i-th direction is
+Here is the slap plane equation in the j-th direction of the i-th axis:
 
-$$ d_i = s p_i - w_i $$
+$$
+w_j = s_j p_i \\
+\text{for } j..2
+$$
+
+Here the sign variable $s_j$ is either $-1$ or $1$. Either the positive slab direction or the negative. If we store the lower and upper bounds of the AABB then we can get the intersection fraction from a slab plane to a point without creating the six planes of an AABB.
+
+The signed distance in the j-th direction of the i-the axis is
+
+$$ d_j = s_j p_i - w_j $$
 
 A common segment definition is  
 
@@ -40,9 +47,9 @@ $$
 t = \frac { w - { n \cdot P } } { n \cdot D }
 $$
 
-Now simplifying using the slab equation, for the i-th plane:
+Now simplifying using the slab equation, for the j-th plane of the i-th axis:
 
-$$ t_i = \frac { w_i - s P_i } { s D_i } $$
+$$ t_j = \frac { w_j - s_j P_i } { s_j D_i } $$
 
 For example, the intersection fraction for the upper bound $u$ of an AABB in the world up direction to a ray, is:
 
