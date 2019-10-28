@@ -44,10 +44,10 @@ $$
 
 where $ n = u_2 \times u_1 $.
 
-Of course in practice we can derive the position constraint using $atan_2$ since it returns the full cone angle and checks for sine division by zero:
+Of course in practice we can derive the position constraint using $\text {atan2}$ since it returns the full cone angle and checks for sine division by zero:
 
 $$
-C = \theta - atan_2( {\|u_2 \times u_1\| }, { u_2 \cdot u_1 } ) > 0
+C = \theta - \text{atan2}( {\|u_2 \times u_1\| }, { u_2 \cdot u_1 } ) > 0
 $$
 
 Using quaternions things are more complex but still very easy to visualize. 
@@ -83,10 +83,10 @@ It's well known that any rotation can be decomposed into a swing and twist rotat
 typically the swing comes after the twist. Therefore,
 
 $$
-q = q_{swing} q_{twist}
+q = q_{\text{swing}} q_{\text{twist}}
 $$
 
-Here $q_{swing}$ is a swing rotation and $q_{twist}$ is a twist rotation. 
+Here $q_{\text{swing}}$ is a swing rotation and $q_{\text{twist}}$ is a twist rotation. 
 
 Having those quaternions computed, we can apply the twist and swing limit to those and use the above formula to recover the clamped quaternion.
 
@@ -94,7 +94,7 @@ In non-singular scenarios, if we chose the twist quaternion to be the $x$-axis, 
 
 $$
 
-q_{twist} = 
+q_{\text{twist}} = 
 \frac {1} {s}
 \begin{bmatrix}
 	q_{v_x} & 0 & 0 & q_s
@@ -113,13 +113,13 @@ which is simply taking a quaternion with the $x$ and $s$ components of $q$ and n
 Solving for the swing we have:
 
 $$
-q_{swing} = q {q_{twist}}^{-1}
+q_{\text{swing}} = q {q_{\text{twist}}}^{-1}
 $$
 
-With this quaternion the full twist angle can be extracted with the help of $atan_2$:
+With this quaternion the full twist angle can be extracted with the help of $\text{atan2}$:
 
 $$
-\alpha = 2 atan_2(q_{v_x}, q_s)
+\alpha = 2 \text{atan2}(q_{v_x}, q_s)
 $$
 
 Now that we have both quaternions and twist angle we can apply the limits.
@@ -129,8 +129,8 @@ Therefore,
 
 $$
 
-{ { q_{twist} }_v }_x = \sin { \frac {lo} 2 } \\
-{ q_{twist} }_s = \cos { \frac {lo} 2 } \\
+{ { q_{\text{twist}} }_v }_x = \sin { \frac {lo} 2 } \\
+{ q_{\text{twist}} }_s = \cos { \frac {lo} 2 } \\
 
 \text{if} \\
 
@@ -142,8 +142,8 @@ or
 
 $$
 
-{ { q_{twist} }_v }_x = \sin { \frac {hi} 2 } \\
-{ q_{twist} }_s = \cos { \frac {hi} 2 } \\
+{ { q_{\text{twist}} }_v }_x = \sin { \frac {hi} 2 } \\
+{ q_{\text{twist}} }_s = \cos { \frac {hi} 2 } \\
 
 \text{if} \\
 
@@ -169,22 +169,22 @@ where $\beta$ is the half cone angle. The circle center is at the origin $(0, 0)
 
 $$
 
-{ { { q_{swing} }_v }_y } = r 
-\frac { { { q_{swing} }_v }_y } { \sqrt { { { { q_{swing} }_v }_y }^2 + { { { q_{swing} }_v }_z }^2 } } \\
+{ { { q_{\text{swing}} }_v }_y } = r 
+\frac { { { q_{\text{swing}} }_v }_y } { \sqrt { { { { q_{\text{swing}} }_v }_y }^2 + { { { q_{\text{swing}} }_v }_z }^2 } } \\
 
-{ { { q_{swing} }_v }_z } = r 
-\frac { { { q_{swing} }_v }_z } { \sqrt { { { { q_{swing} }_v }_y }^2 + { { { q_{swing} }_v }_z }^2 } } \\
+{ { { q_{\text{swing}} }_v }_z } = r 
+\frac { { { q_{\text{swing}} }_v }_z } { \sqrt { { { { q_{\text{swing}} }_v }_y }^2 + { { { q_{\text{swing}} }_v }_z }^2 } } \\
 
 \text{if} \\
 
-{ { { q_{swing} }_v }_y }^2 + { { { q_{swing} }_v }_z }^2 > r^2
+{ { { q_{\text{swing}} }_v }_y }^2 + { { { q_{\text{swing}} }_v }_z }^2 > r^2
 
 $$
 
 Now we have both quaternions clamped we can recompose the clamped joint quaternion:
 
 $$
-q = q_{swing} q_{twist}
+q = q_{\text{swing}} q_{\text{twist}}
 $$
 
 Finally, we can write a working implementation for rotational cone-twist joint limits in quaternion space which supports full angles:
