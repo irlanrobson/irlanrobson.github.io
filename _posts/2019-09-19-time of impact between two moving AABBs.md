@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Time of Impact between two moving AABBs
+mathjax: true
 tags: []
 ---
 
@@ -151,17 +152,17 @@ Let us start explaining the algorithm above.
 
 Fist of all, as in any TOI problem, the TOI for AABBs is the problem of finding the fraction on the displacement at the largest distance the objects can travel before overlapping. 
 
-Let us call those bounding boxes A and B. 
+Let us call those bounding boxes $A$ and $B$. 
 
 The first step in the algorithm is to check if the AABBs are overlapping. If they aren't the TOI can be 
 determined. Otherwise we can quit the algorithm and return false because the TOI can't be determined.
 
-If the two AABBs have displacements dA and dB of their center of masses then we can reduce this problem to the problem of finding the TOI 
-between a dynamic AABB B and a static AABB A by putting dB relative to dA.
+If the two AABBs have displacements $d_A$ and $d_B$ of their center of masses then we can reduce this problem to the problem of finding the TOI 
+between a dynamic AABB $B$ and a static AABB $A$ by putting $d_B$ relative to $d_A$.
 
 Fortunately, for two AABBs, the TOI along a cardinal axis can be computed using simple interval algebra. 
 
-Here, we call t1 the TOI at which B begins overlapping A. We name t2 the TOI at which B ends overlapping A.
+Here, we call $t_1$ the TOI at which $B$ begins overlapping $A$. We name $t_2$ the TOI at which $B$ ends overlapping $A$.
 
 Then for each axis we need to test against some conditions. 
 The first case we test is when there is no displacement in the axis. In this case we need to check if the AABBs are overlapping in the axis. 
@@ -178,29 +179,29 @@ Otherwise the AABBs are clearly separated. Below is one configuration in which t
 ![Mesh file format on a text editor](/assets/separating_2.png) 
 {: refdef}
 
-If t1 or t2 can be computed, the formulas for the (positive) TOIs along an axis depend on the sign of d 
+If $t_1$ or $t_2$ can be computed, the formulas for the (positive) TOIs along an axis depend on the sign of $d$ 
 along that axis and the positions of the intervals. So there are a few if checks to ensure the resulting TOI is positive. 
-Otherwise, if we can't compute the TOIs for that axis they will be set to the minimum or maximum possible TOI, that is, 0 or 1.
+Otherwise, if we can't compute the TOIs for that axis they will be set to the minimum or maximum possible TOI, that is, $0$ or $1$.
 
-If we can't compute t2 for an axis, we check if the interval B is moving away from interval A. If it is the AABBs are clearly 
+If we can't compute $t_2$ for an axis, we check if the interval $B$ is moving away from interval $A$. If it is the AABBs are clearly 
 separated on that axis and we can quit the algorithm.
 
-If we can compute t1 for an axis, then we can check if it exceeds the maximum possible TOI: 1. If it does, then the AABB B is separated along the direction and 
+If we can compute $t_1$ for an axis, then we can check if it exceeds the maximum possible TOI: $1$. If it does, then the AABB $B$ is separated along the direction and 
 we can quit the algorithm returning false.
 
 {:refdef: style="text-align: center;"}
 ![Mesh file format on a text editor](/assets/separating_3.png) 
 {: refdef}
 
-Now that we have computed t1 and t2 for each axis, we need to find the TOI at the *largest distance B can travel before overlapping*. 
-This is the output TOI if the AABBs will touch during the motion. This means taking the maximum of all t1 values.
+Now that we have computed $t_1$ and $t_2$ for each axis, we need to find the TOI at the *largest distance B can travel before overlapping*. 
+This is the output TOI if the AABBs will touch during the motion. This means taking the maximum of all $t_1$ values.
 
-We also need to find the minimum TOI at which B ends overlapping A, choosing the minimum of all t2 values.
+We also need to find the minimum TOI at which $B$ ends overlapping $A$, choosing the minimum of all $t_2$ values.
 
-With t1 and t2, we can test whether the AABBs will overlap during the motion. 
-For this, we check if the maximum TOI at which B begins overlapping A is greater than the minimum TOI at which B ceases overlapping A. 
+With $t_1$ and $t_2$, we can test whether the AABBs will overlap during the motion. 
+For this, we check if the maximum TOI at which $B$ begins overlapping $A$ is greater than the minimum TOI at which $B$ ceases overlapping $A$. 
 If it is, the AABBs are separated. 
-The following picture illustrates this idea. As before, it uses lines for representing maximum t1 and minimum t2. 
+The following picture illustrates this idea. As before, it uses lines for representing maximum $t_1$ and minimum $t_2$. 
 
 {:refdef: style="text-align: center;"}
 ![Mesh file format on a text editor](/assets/separating_1.png) 
@@ -212,7 +213,7 @@ Otherwise the AABBs will touch during the motion and we can return true and the 
 ![Mesh file format on a text editor](/assets/touching_2.png) 
 {: refdef}
 
-That's it. I hope this short post helps if you're writing this function (:. 
+That's it. I hope this short post helps if you're writing this function (:
 
 **Note**: Christer's code can be faster as it tracks the maximum and minimum TOI but it doesn't handle cases where the displacement is zero. 
 

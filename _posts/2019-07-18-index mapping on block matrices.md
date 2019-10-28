@@ -1,10 +1,11 @@
 ---
 layout: post
 title: Index mapping on block matrices
+mathjax: true
 tags: []
 ---
 
-Time for some tricks that are worth sharing.
+Time for some stuff that is worth sharing.
 
 It's common for one to use block matrices for computations. However, when using such conveniences we need to make sure we also have 
 functions for getting back the original matrix, reading individual elements, and more. In this post I'll show you how to implement some 
@@ -17,36 +18,42 @@ For example, a (large) 6-by-6 matrix could be stored as a compact 2-by-2 block m
 
 The large matrix is 
 
-{% highlight cpp %}
+$$ 
 
-A = [a11 a12 a13 a14 a15 a16] 
-    [a21 a22 a23 a24 a25 a26]
-    [a31 a32 a33 a34 a35 a36]
-    [a41 a42 a43 a44 a45 a46]
-    [a51 a52 a53 a54 a55 a56]
-    [a61 a62 a63 a64 a65 a66]
+A = 
 
-{% endhighlight %}
+\begin{bmatrix}
+	 a_{1,1} & a_{1,2} & a_{1,3} & a_{1,4} & a_{1,5} & a_{1,6} \\
+     a_{2,1} & a_{2,2} & a_{2,3} & a_{2,4} & a_{2,5} & a_{2,6} \\
+     a_{3,1} & a_{3,2} & a_{3,3} & a_{3,4} & a_{3,5} & a_{3,6} \\
+     a_{4,1} & a_{4,2} & a_{4,3} & a_{4,4} & a_{4,5} & a_{4,6} \\
+     a_{5,1} & a_{5,2} & a_{5,3} & a_{5,4} & a_{5,5} & a_{5,6} \\
+     a_{6,1} & a_{6,2} & a_{6,3} & a_{6,4} & a_{6,5} & a_{6,6} \\
+\end{bmatrix}
+
+$$
 
 and it's corresponding compact block matrix is
 
-{% highlight cpp %}
+$$
 
-A = [a11 a12]
-    [a21 a22]
+A = 
+
+\begin{bmatrix}
+	\boldsymbol{a_{1,1}} & \boldsymbol{a_{1, 2}} \\
+	\boldsymbol{a_{2,1}} & \boldsymbol{a_{2, 2}} \\
+\end{bmatrix}
 	
-{% endhighlight %}
+$$
 
 Now the first question we would like to answer is: How do I create the original matrix from the block matrix?
 
 Any given element in the block matrix can be converted into the corresponding element in the original matrix by using the equations
 
-{% highlight cpp %}
-
-i0 = 3 * i
-j0 = 3 * j
-
-{% endhighlight %}
+$$ 
+i_0 = 3 * i \\
+j_0 = 3 * j
+$$
 
 So we can see that creating the original matrix shouldn't be difficult task. That is a matter of looping over the submatrices and put those in the original matrix. 
 
@@ -66,14 +73,14 @@ for (u32 i = 0; i < A.M; ++i)
 		
 		b3Mat33 aij = A(i, j);
 
-		for (u32 ii = 0; ii < 3; ++ii)
+		for (u32 I = 0; I < 3; ++I)
 		{
-			for (u32 jj = 0; jj < 3; ++jj)
+			for (u32 J = 0; J < 3; ++J)
 			{
-				u32 row = i0 + ii;
-				u32 col = j0 + jj;
+				u32 r = i0 + I;
+				u32 c = j0 + J;
 
-				a[row + 3 * A.M * col] = aij(ii, jj);
+				a[r + 3 * A.M * c] = aij(I, J);
 			}
 		}
 	}
@@ -81,72 +88,62 @@ for (u32 i = 0; i < A.M; ++i)
 
 {% endhighlight %}
 
-Again, A is stored in column major order since the index function is f(i, j) = i + m * j.
+Again, A is stored in column major order since the index function is 
+
+$$ f(i, j) = i + mj $$
 
 Now the original matrix of the corresponding block matrix can be built. It certainly has some applications sometimes.
 
 The next and last question we would like to answer is: How can I get a particular element of the original matrix from the block matrix given 
 the indices of this element in the original matrix?
 
-Solving for i, j in the equation
+Solving for $i, j$ in the equation
 
-{% highlight cpp %}
-
-i0 = 3 * i
-j0 = 3 * j
-
-{% endhighlight %}
+$$
+i_0 = 3 i \\
+j_0 = 3 j
+$$
 
 yields 
 
-{% highlight cpp %}
+$$
+i = \frac {i_0} {3} \\
+j = \frac {j_0} {3} 
+$$
 
-i = i0 / 3
-j = j0 / 3
+For example, for row $r$ and column $c$ in the original matrix, the location of the submatrix in the block matrix containing the element at $(r, c)$ is
 
-{% endhighlight %}
-
-For example, for row *row* and column *col* in the original matrix, the location of the submatrix in the block matrix containing the element at (*row*, *col*) is
-
-{% highlight cpp %}
-
-i = row / 3
-j = col / 3
-
-{% endhighlight %}
+$$
+i = \frac r 3 \\
+j = \frac c 3
+$$
 
 However, we would like to know the location of the element in the submatrix, and not the location of the submatrix.
 
 We can see in the last implementation we used two functions for mapping from subindices to global indices. Those are
 
-{% highlight cpp %}
+$$
+r = 3 i + I \\
+c = 3 j + J 
+$$
 
-row = 3 * i + ii 
-col = 3 * j + jj 
+In the current problem we're trying to solve the values $r$ and $c$ are known. Those are the original matrix element indices. 
 
-{% endhighlight %}
+The subindices $i$ and $j$ are also known,
 
-In the current problem we're trying to solve the values row and col are known. Those are the original matrix element indices. 
-
-The subindices i and j are also known,
-
-{% highlight cpp %}
-
-i = row / 3
-j = col / 3
-
-{% endhighlight %}
+$$
+i = \frac 3r \\
+j = \frac 3c 
+$$
 
 We are seeking for the values ii and jj. Hence, solving for them, yields 
 
-{% highlight cpp %}
+$$
+I = r - 3 i \\
+J = c - 3 j 
+$$
 
-ii = row - 3 * i 
-jj = col - 3 * j 
-
-{% endhighlight %}
-
-**Note**: Since we're performing index math 3 * (row / 3) != row because of rounding. The same holds for col.
+**Note**: Since we're performing integer math $ 3 (\frac r 3) != r $ because of rounding. The same holds for $c$.
 
 Now a function that returns the element from a block matrix given the original element location can be written.
 
@@ -154,20 +151,20 @@ Now a function that returns the element from a block matrix given the original e
 
 // Return the element in a block matrix given the indices 
 // of the element in its corresponding expanded matrix.
-static B3_FORCE_INLINE float32 b3GetElement(const b3BlockMat33& A, u32 row, u32 col)
+static B3_FORCE_INLINE float32 b3GetElement(const b3BlockMat33& A, u32 r, u32 c)
 {
-	B3_ASSERT(row < 3 * A.M);
-	B3_ASSERT(col < 3 * A.N);
+	B3_ASSERT(r < 3 * A.M);
+	B3_ASSERT(c < 3 * A.N);
 
-	u32 i = row / 3;
-	u32 j = col / 3;
+	u32 i = r / 3;
+	u32 j = c / 3;
 
 	const b3Mat33& a = A(i, j);
 
-	u32 ii = row - 3 * i;
-	u32 jj = col - 3 * j;
+	u32 I = r - 3 * i;
+	u32 J = c - 3 * j;
 
-	return a(ii, jj);
+	return a(I, J);
 }
 
 {% endhighlight %}

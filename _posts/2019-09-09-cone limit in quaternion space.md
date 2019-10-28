@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Cone Limit in Quaternion Space
+mathjax: true
 tags: []
 ---
 
@@ -11,143 +12,180 @@ In this post I'll show you how this can be done in joint space. I also show how 
 
 Commonly the conical joint limit is modeled as a constraint 
 
-{% highlight cpp %}
+$$
+C = u_2 \cdot u_1 - \cos{\theta} > 0 \\
+\dot{C} = u_2 \cdot { {\omega}_1 \times u_1 } + u_1 \cdot { {\omega}_2 \times u_2 }
+$$
 
-C = dot(u2, u1) - cos(angle / 2) > 0
-Cdot = dot(u2, omega1 x u1) + dot(u1, omega2 x u2)
+where $u_1$ and $u_1$ are the cone axis stored in the frame of body $A$ and $B$ respectively mapped to world space and $\theta$ is the half cone angle.
 
-{% endhighlight %}
+The Jacobians can be identified via inspection:
 
-where u1 and u1 are the cone axis stored in the frame of body A and B respectively mapped to world space.
+Rewrite:
 
-By far the Jacobians are identified via inspection:
+$$
+\dot{C} = 
+J v =
+{ u_1 \times u_2 } \cdot { {\omega}_1 } + { u_2 \times u_1 } \cdot { {\omega}_2 } = 
+{ -u_2 \times u_1} \cdot { {\omega}_1 } + { u_2 \times u_1 } \cdot {\omega}_2 \\
+$$
 
-{% highlight cpp %}
+Identify:
 
-dot(u1 x u2, omega1) + dot(u2 x u1, omega2) = 
-dot(-u2 x u1, omega1) + dot(u2 x u1, omega2)
-n = u2 x u1
-J = [0 -n 0 n]
+$$
 
-{% endhighlight %}
+J = 
 
-Of course in practice we can derive the position constraint using atan2 since it returns the full cone angle and checks for sine division by zero:
+\begin{bmatrix}
+	0 & -n & 0 & n
+\end{bmatrix}
 
-{% highlight cpp %}
-C = angle / 2 - atan2( norm(u2 x u1), dot(u2, u1) ) > 0
-{% endhighlight %}
+$$
 
-Using quaternions things are more complex but still very easy to visualize. The joint rotation is:
+where $ n = u_2 \times u_1 $.
 
-{% highlight cpp %}
-q = conjugate(reference_rotation) * conjugate(fA) * fB
-{% endhighlight %}
+Of course in practice we can derive the position constraint using $atan_2$ since it returns the full cone angle and checks for sine division by zero:
 
-where fA and fB are the orientations of both joint frames in world space.
+$$
+C = \theta - atan_2( {\|u_2 \times u_1\| }, { u_2 \cdot u_1 } ) > 0
+$$
+
+Using quaternions things are more complex but still very easy to visualize. 
+
+Here we use quaternions in block form. It has a vector part $\boldsymbol v$ and a scalar part $s$: 
+
+$$
+q = 
+
+\begin{bmatrix}
+	\boldsymbol v & s
+\end{bmatrix}
+
+=
+
+\begin{bmatrix}
+	v_x & v_y & v_z & s
+\end{bmatrix}
+
+$$
+
+Also, the quaternion inverse denotes the conjugate quaternion. 
+
+The joint rotation is:
+
+$$
+q = {q_0}^{-1} {f_A}^{-1} f_B
+$$
+
+$f_A$ and $f_B$ are the orientations of both joint frames in world space.
 
 It's well known that any rotation can be decomposed into a swing and twist rotation. The swing can happen before the twist. However, 
 typically the swing comes after the twist. Therefore,
 
-{% highlight cpp %}
-q = qs * qt
-{% endhighlight %}
+$$
+q = q_{swing} q_{twist}
+$$
 
-Here qs is a swing rotation and qt is a twist rotation. 
+Here $q_{swing}$ is a swing rotation and $q_{twist}$ is a twist rotation. 
 
 Having those quaternions computed, we can apply the twist and swing limit to those and use the above formula to recover the clamped quaternion.
 
-In non-singular scenarios, if we chose the twist quaternion to be the x-axis, the twist can be computed as:
+In non-singular scenarios, if we chose the twist quaternion to be the $x$-axis, the twist can be computed as:
 
-{% highlight cpp %}
+$$
 
-s = sqrt(q.v.x * q.v.x + q.s * q.s)
+q_{twist} = 
+\frac {1} {s}
+\begin{bmatrix}
+	q_{v_x} & 0 & 0 & q_s
+\end{bmatrix}
 
-qt.v.x = q.v.x / s;
-qt.v.y = 0
-qt.v.z = 0
-qt.s = q.s / s;
+$$
 
-{% endhighlight %}
+where
 
-which is simply taking a quaternion with the x and s components of q and normalizing the resulting quaternion.
+$$
+s = \sqrt { {q_{v_x}}^2 + {q_s}^2 }
+$$
+
+which is simply taking a quaternion with the $x$ and $s$ components of $q$ and normalizing the resulting quaternion.
 
 Solving for the swing we have:
 
-{% highlight cpp %}
-qs = q * conjugate(qt)
-{% endhighlight %}
+$$
+q_{swing} = q {q_{twist}}^{-1}
+$$
 
-With this quaternion the full twist angle can be extracted with the use of atan2:
+With this quaternion the full twist angle can be extracted with the help of $atan_2$:
 
-{% highlight cpp %}
-angle = 2 * atan2(q.v.x, q.s)
-{% endhighlight %}
+$$
+\alpha = 2 atan_2(q_{v_x}, q_s)
+$$
 
 Now that we have both quaternions and twist angle we can apply the limits.
 
-The twist limit along the x-axis can be applied by checking if the current twist angle is in the range *[lower, upper]* and clamping it to that range. 
-The following code shows how this can be done basically.
+The twist limit along the $x$-axis can be applied by checking $\alpha$ is in the range $[lo, hi]$ and clamping it to that range. 
+Therefore, 
 
-{% highlight cpp %}
-float32 angle = 2 * atan2(q.v.x, q.s)
+$$
 
-if (angle <= lower)
-{
-	float32 theta = 0.5f * lower;
-	qt.v.x = sin(theta);
-	qt.s = cos(theta);
-}
-else if (angle >= upper)
-{
-	float32 theta = 0.5f * upper;
-	qt.v.x = sin(theta);
-	qt.s = cos(theta);
-}
-{% endhighlight %}
+{ { q_{twist} }_v }_x = \sin { \frac {lo} 2 } \\
+{ q_{twist} }_s = \cos { \frac {lo} 2 } \\
+
+\text{if} \\
+
+\alpha \leq lo
+
+$$
+
+or
+
+$$
+
+{ { q_{twist} }_v }_x = \sin { \frac {hi} 2 } \\
+{ q_{twist} }_s = \cos { \frac {hi} 2 } \\
+
+\text{if} \\
+
+\alpha \geq hi
+
+$$
 
 The swing limit is a little more complicated. 
 
-The swing cone limit can be applied by clamping the 2D swing vector part (here, (y, z)) of the quaternion to a 2D circle and more generally to a 2D ellipse.
+The swing cone limit can be applied by clamping the 2D swing vector part (here, $(q_{v_y}, q_{v_z})$) of $q$ to a 2D circle and more generally to a 2D ellipse.
 However, the latter is more complicated because we will have to find the closest point from a point to an ellipse. Which means analitically solving a 4-th order polynomial 
 or numerically solving for it using a suitable root finding algorithm.
 Clamping to other shapes numerically can be done using GJK.
-Therefore, I hope you know how to clamp a 2D point to a 2D circle (:.
+Therefore, I hope you know how to clamp a 2D point to a 2D circle (:
 
 The circle radius is 
 
-{% highlight cpp %}
-r = sin(half_cone_angle / 2)
-{% endhighlight %}
+$$
+r = \sin { \frac { \beta} {2} }
+$$
 
-The circle center is at the origin of course.
+where $\beta$ is the half cone angle. The circle center is at the origin $(0, 0)$ of course. Therefore, 
 
-{% highlight cpp %}
+$$
 
-// Half cone angle
-float32 angle = 0.5f * m_coneAngle;
+{ { { q_{swing} }_v }_y } = r 
+\frac { { { q_{swing} }_v }_y } { \sqrt { { { { q_{swing} }_v }_y }^2 + { { { q_{swing} }_v }_z }^2 } } \\
 
-// Circle radius
-float32 r = sin(0.5f * angle);
+{ { { q_{swing} }_v }_z } = r 
+\frac { { { q_{swing} }_v }_z } { \sqrt { { { { q_{swing} }_v }_y }^2 + { { { q_{swing} }_v }_z }^2 } } \\
 
-// Clamp p to circle with radius r at the origin
-b3Vec2 p(y, z);
-if (b3LengthSquared(p) > r * r)
-{
-	p.Normalize();
-	
-	p *= r;
+\text{if} \\
 
-	y = p.x;
-	z = p.y;
-}
+{ { { q_{swing} }_v }_y }^2 + { { { q_{swing} }_v }_z }^2 > r^2
 
-{% endhighlight %}
+$$
 
-Now since we have both quaternions clamped, we can recover the clamped quaternion:
+Now we have both quaternions clamped we can recompose the clamped joint quaternion:
 
-{% highlight cpp %}
-q = qs * qt
-{% endhighlight %}
+$$
+q = q_{swing} q_{twist}
+$$
 
 Finally, we can write a working implementation for rotational cone-twist joint limits in quaternion space which supports full angles:
 
@@ -257,7 +295,6 @@ current joint rotation to a target constrained rotation. Cheaply we can use fini
 elegant and simple to implement. The Jacobians and constraint effective masses of the quaternion constraints are not so trivial to derive. 
 
 That's it. I hope this post was not very confusing. 
-Sometimes it is much simpler to comment the code and provide an explanation than writing Latex scripts.
 
 **Note**: If you are looking for a more general framework for applying limits in quaternion space I recommend this nice project by Gino from which I got some inspiration
 to write this post:

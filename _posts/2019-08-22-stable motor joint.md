@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Stable Motor Joint
+mathjax: true
 tags: []
 ---
 
@@ -8,49 +9,48 @@ The problem is to implement a stable motor joint. Commonly a motor joint is mode
 
 Therefore, one could write a constraint in terms of quaternion differences such as:
 
-qC = conjugate(angular_offset) * conjugate(qA) * qB
+$$
+q_C = q_0 {q_A}^{-1} q_B
+$$
 
-where qA and qB are the orientations of both bodies and angular_offset is the angular offset which is the orientation of body B in body A's frame (the 
+where $q_A$ and $q_B$ are the orientations of body $A$ and body $B$ and $q_0$ is the angular offset which is the orientation of body $B$ in body $A$'s frame (the 
 target relative orientation).
+
+Here I assume the inverse symbol represents the conjugate of the quaternion.
+
 Then we could build the Jacobians using a projector operator or some simplification of some kind as usual. 
 However, I will show that this is not necessary if you are solving this constraint at the velocity level. 
 The velocity constraint has the following form:
 
-{% highlight cpp %}
+$$
+\dot{C} = {\omega}_B - {\omega}_A - {\omega}_0
+$$
 
-Cdot = (wB - wA) - angular_velocity
+where ${\omega}_A$ and ${\omega}_B$ are the angular velocities of the bodies.
 
-{% endhighlight %}
-
-where wA and wB are the angular velocities of the bodies.
-
-Here angular_velocity is the target relative angular velocity and we need to find it.
+Here ${\omega}_0$ is the target relative angular velocity and we need to find it.
 
 Therefore, we can pose the problem as follows. Find the relative angular velocity given the body rotations and angular offset. For this we can apply the finite difference method:
 
 Define 
 
-{% highlight cpp %}
-
-q1 = conjugate(qA) * qB
-q2 = angular_offset
-
-{% endhighlight %}
+$$
+q_1 = {q_A}^{-1} q_B \\
+q_2 = q_0
+$$
 
 Then check the polarity, flip one of the quaternions if it is needed case and use the formula
 
-{% highlight cpp %}
+$$
+q_{\omega} = \frac { 2 (q_2 - q_1) {q_1}^{-1} } { h }
+$$
 
-qW = inv_h * 2.0f * (q2 - q1) * conjugate(q1)
+where $h$ is the time step. 
 
-{% endhighlight %}
+The vector part of $q_{\omega}$ is the angular velocity that will rotate $q_1$ to $q_2$ over the time step $h$. 
+Substitute the angular velocity in $\dot{C}$.
 
-where inv_h is the inverse time step. 
-
-The vector part of qW is the angular velocity will rotate q1 to q2 over the time step h. 
-Substitute the angular velocity in Cdot.
-
-Note: The angular velocity is in body A's frame. So we need to convert it to world space.
+**Note**: The angular velocity is in body $A$'s frame. Therefore, we must convert it to world space.
 
 In code that could be written as:
 

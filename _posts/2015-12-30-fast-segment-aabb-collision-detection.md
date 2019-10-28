@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Fast Segment-AABB Collision Detection
+mathjax: true
 tags:
 - Collision
 - Math
@@ -10,33 +11,44 @@ Let's say we need to compute the intersection point and normal from a line segme
 
 ### Derivation
 
-The plane equation for a slab is simpler than the plane's in that the signed distance from any point to the slab plane in a certain direction is just the point coordinate in that direction minus the slab plane offset from the origin in that direction.
+The plane equation for a slab is simpler than the plane's in that the signed distance $d_i$ from any point to the slab plane in a certain direction is just the point coordinate in that direction $p_i$ minus the slab plane offset from the origin in that direction $w_i$.
 
-dot(n[i], p) = offset[i], i = 1...6
+$$ w_i = {n_i} \cdot {p_i} \\ 
+w_i = s p_i \\
+i = 1..6 $$
 
-sign * p[i] = offset[i]
+Here the sign variable $s$ is either $-1$ or $1$. Either the positive slab direction or the negative. If we store the lower and upper bounds of the AABB then we can get the intersection fraction from a slab plane to a point without creating the six planes of an AABB.
 
-signed distance = sign * p[i] - offset[i]
+Therefore, the signed distance in the i-th direction is
 
-Here the sign variable is either -1 or 1; either the positive slab direction or the negative. That means that if we store the lower and upper bounds of the AABB (remember that the values of each bound represents an axis-aligned plane) then we can get the intersection fraction from a slab plane to a point without creating the six planes of an AABB.
+$$ d_i = s p_i - w_i $$
 
-Let's plug the segment definition s = p1 + fraction * (p2 - p1) in the plane equation. Assumming d = p2 - p1, and solving for a (unbounded) fraction in the i-th direction, we get:
+A common segment definition is  
 
-dot(n, p1 + fraction * d) = offset
+$$ S = P + t D $$
 
-dot(n, p1) + fraction * dot(n, d) = offset
+Where $D = Q - P$. Let us plug that definition in the plane equation. 
 
-fraction = (offset - dot(n, p1)) / dot(n, d)
+$$ 
+{n} \cdot (P + t D) = w
+$$
+
+Solving for $t$ (unbounded), we get:
+
+$$
+{ n \cdot P } + t {n \cdot D} = w \\
+t = \frac { w - { n \cdot P } } { n \cdot D }
+$$
 
 Now simplifying using the slab equation, for the i-th plane:
 
-fraction = offset[i] - sign * p1[i] / sign * d[i]
+$$ t_i = \frac { w_i - s P_i } { s D_i } $$
 
-For example, the intersection fraction for the upper bound of an AABB in the world up direction to a ray, is:
+For example, the intersection fraction for the upper bound $u$ of an AABB in the world up direction to a ray, is:
 
-fraction = (upper.y - p1.y) / d.y
+$$ t_y = \frac { u_y - P_y } { D_y } $$
 
-Of course, if d.y is zero, then the ray is paralell to the upper plane and we should do something in this case.
+Of course, if $D_y = 0$ then the ray is paralell to the upper plane and we should do something in this case.
 
 For the intersection test, we can basically use the same method showed on Christer Ericson's excelent book Real Time Collision Detection, at page 180, for testing a segment with a convex polyhedron.┬áThe method finds the minimum intersection fraction with the ray given that during the process it performs simple comparison operations to maintain the logical intersections along the ray. I'm not going to explain the method here, but it is very popular and I hopefully believe that it can be found around the web pretty quickly.
 
