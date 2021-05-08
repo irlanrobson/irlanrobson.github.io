@@ -44,7 +44,3 @@ Practically, a single mouse constraint equation could be enforced as:
 	Body2->ApplyLinearImpulseAtPoint(Impulse, P2); 
 
 {% endhighlight %}
-
-And here is the result:
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/CX7ml-p-bx4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
