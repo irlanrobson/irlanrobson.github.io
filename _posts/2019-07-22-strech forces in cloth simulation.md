@@ -187,15 +187,6 @@ $$
 
 If you need somewhat to include compression forces in your cloth simulation, the work of [2] is usually recommended as a good approach to the problem.
 
-(Then someone asks...)
-
-**Dude, where is the complete source code?**
-
-Dude, fortunately it happens that theres a complete logic for the inclusion of the strech force
-implemented [**here**](https://github.com/irlanrobson/bounce/blob/master/src/bounce/cloth/forces/strech_force.cpp).
-(You can browse the project files for seeing an implementation for a modified version of the entire cloth simulator described in [1].)
-In this implementation all the edge cases for the inclusion of the stretch forces are handled correctly which results in good and trustable cloth simulation.
-
 I think that's a wrap. 
 
 Hopefully this post will help someone to reliably implement Baraff's cloth simulation.
