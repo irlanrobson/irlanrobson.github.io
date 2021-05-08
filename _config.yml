@@ -19,7 +19,7 @@ description: >- # this means to ignore newlines until "baseurl:"
   Irlan's weblog
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: irlanrobson
+twitter_username:
 github_username:  irlanrobson
 google_analytics: UA-135200860-1
 permalink: pretty
