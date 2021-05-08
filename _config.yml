@@ -25,7 +25,7 @@ google_analytics: UA-135200860-1
 permalink: pretty
 # Build settings
 markdown: kramdown
-theme: jekyll-theme-cayman
+theme: minima
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
