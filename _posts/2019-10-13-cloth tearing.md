@@ -455,12 +455,6 @@ bool SplitParticle(b3ClothParticle* pSplit, const b3Plane& plane)
 
 {% endhighlight %}
 
-# Results
-
-Here's a video showing the visually pleasing results of the technique described in this tutorial in practice:
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/bjf5vbp2meM" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
 I hope you have enjoyed this small tutorial!
 
 While I can't find a simple comment system to add to this blog you're welcome to report any errors using the issue tracker in this repository:
